@@ -1,6 +1,5 @@
-package tests;
-
 import coen352.WarehouseInventory;
+
 
 public class WarehouseTest {
 

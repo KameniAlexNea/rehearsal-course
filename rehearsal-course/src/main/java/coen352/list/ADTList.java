@@ -13,8 +13,7 @@ public interface ADTList<E> {
     public void clear();
 
     /**
-     * Insert an element at the current location. The client must ensure that
-     * the list�s capacity is not exceeded.
+     * Insert an element at the current location.The client must ensure that the lists capacity is not exceeded.
      *
      * @param item The element to be inserted.
      */

@@ -2,6 +2,7 @@ package coen352.delement;
 
 /**
  * Doubly linked list node
+ * @param <E>
  */
 public class DLink<E> {
 
@@ -13,26 +14,29 @@ public class DLink<E> {
 
     /**
      * Constructors
+     * @param it
+     * @param p
+     * @param n
      */
-    DLink(E it, DLink<E> p, DLink<E> n) {
+    public DLink(E it, DLink<E> p, DLink<E> n) {
         element = it;
         prev = p;
         next = n;
     }
 
-    DLink(DLink<E> p, DLink<E> n) {
-        prev = p;
-        next = n;
+    public DLink(DLink<E> p, DLink<E> n) {
+        this(null, p, n);
     }
 
     /**
      * Get and set methods for the data members
+     * @return 
      */
-    DLink<E> next() {
+    public DLink<E> getNext() {
         return next;
     }
 
-    DLink<E> setNext(DLink<E> nextval) {
+    public DLink<E> setNext(DLink<E> nextval) {
         return next = nextval;
     }
 
@@ -40,7 +44,7 @@ public class DLink<E> {
         return prev;
     }
 
-    DLink<E> setPrev(DLink<E> prevval) {
+    public DLink<E> setPrev(DLink<E> prevval) {
         return prev = prevval;
     }
 

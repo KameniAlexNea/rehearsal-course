@@ -10,24 +10,26 @@ import coen352.list.AList;
 
 /**
  * Dictionary implemented by unsorted array-based list.
+ * @param <Key>
+ * @param <E>
  */
 public class ALDictionary<Key, E> implements ADTDictionary<Key, E> {
 
-    private static final int defaultSize = 100; // Default size
+    private static final int DEFAULTSIZE = 100; // Default size
 
-    private AList<Key> klist;
-    private AList<E> vlist;
+    private AList<Key> klist; // key
+    private AList<E> vlist; // value
 
     /**
      * Constructors
      */
-    ALDictionary() {
-        this(defaultSize);
+    public ALDictionary() {
+        this(DEFAULTSIZE);
     }
 
-    ALDictionary(int sz) {
-        klist = new AList<Key>(sz);
-        vlist = new AList<E>(sz);
+    public ALDictionary(int sz) {
+        klist = new AList<>(sz);
+        vlist = new AList<>(sz);
     }
 
     /**
@@ -61,7 +63,6 @@ public class ALDictionary<Key, E> implements ADTDictionary<Key, E> {
             klist.append(k);
             vlist.append(e);
         }
-
     }
 
     /**
@@ -69,8 +70,8 @@ public class ALDictionary<Key, E> implements ADTDictionary<Key, E> {
      */
     @Override
     public E remove(Key k) {
-        E temp = find(k);
         int origin = klist.currPos();
+        E temp = find(k);
         if (temp != null) {
             int pos = klist.find(k);
             klist.moveToPos(pos);
@@ -132,7 +133,6 @@ public class ALDictionary<Key, E> implements ADTDictionary<Key, E> {
     }
 
     public int find(AList<Key> klist, Key k) {
-
         int orgCurr = klist.currPos();
         int pos = 0;
         for (; pos < klist.length(); pos++) {
@@ -145,15 +145,4 @@ public class ALDictionary<Key, E> implements ADTDictionary<Key, E> {
         klist.moveToPos(orgCurr);
         return pos; // k not found
     }
-
-    /**
-     * public int[] createDesendingIndex() { index = new int [klist.length()];
-     * // revise sorting algorithm to solve the right position of each record //
-     * according to if it is a ascending or descending order. // the original
-     * record order must be reserved without any swap.      *
-     *
-     * return index;      *
-     *
-     * }
-     */
 }

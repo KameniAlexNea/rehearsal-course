@@ -11,7 +11,7 @@ public class ListTestRunner {
 
     public static void runManualTest() {
         ListJUnitTest t = new ListJUnitTest();
-        ListJUnitTest.setUp();
+        t.setUp();
         t.testAppend();
         t.testFind();
         t.testListOfObjects();

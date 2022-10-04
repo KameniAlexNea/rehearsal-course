@@ -4,6 +4,8 @@ import coen352.list.ADTList;
 
 /**
  * Linked list implementation
+ *
+ * @param <E>
  */
 public class LList<E> implements ADTList<E> {
 
@@ -11,115 +13,129 @@ public class LList<E> implements ADTList<E> {
 
     private Link<E> tail; // Pointer to last element
 
-    protected Link<E> curr; // Access to current element
+    private Link<E> curr; // Access to current element
+
+    private int size;
 
     private int cnt; // length of list
 
-    /**
-     * Constructors
-     * @param size
-     */
-    public LList(int size) {
-        this();
-    } // Constructor -- Ignore size
+    public Link<E> getCurr() {
+        return curr;
+    }
 
     public LList() {
-        curr = tail = head = new Link<E>(null); // Create header
-        cnt = 0;
+    }
+
+    public LList(int size) {
+        this.size = size;
     }
 
     /**
      * Remove all elements
      */
+    @Override
     public void clear() {
+        if (this.length() == 0) {
+            return;
+        }
         head.setNext(null); // Drop access to links
-        curr = tail = head = new Link<E>(null); // Create header
+        curr = tail = head = null; // Create header
         cnt = 0;
     }
 
     /**
      * Insert "it" at current position
+     *
+     * @param it
      */
+    @Override
     public void insert(E it) {
-        if (this.length() == 0) // if the list is empty
+        Link<E> newNode = new Link<>(it, null);
+        if (hasElement()) // if the list is not empty
         {
-            Link<E> newNode = new Link<E>(it, null); // create a node where its next element is null
-            head = newNode; //set head to the new node 
-            curr = head; //set curr to head 
-            tail = curr.next(); //set tail to be the next node of curr, which is null for this case 
-        } else {
-            if (curr.next() == null) //if we wanna append (insert at the end of a list)
+            if (!hasNext()) // insert at the end
             {
-                curr.setNext(new Link<E>(it, null)); //set curr to point to a new node and that node is pointing to null
-                tail = curr.next(); //set tail to be that new element
-                this.next(); // move curr 
+                curr.setNext(newNode); //set curr to point to a new node and that node is pointing to null
+                tail = newNode; //set tail to be that new element
+                this.next();
             } else {
                 Link<E> temp = curr; //create a copy of pointer curr called temp and set that to the node where curr is pointing at
                 this.next(); // move curr to the next node (but temp is not moved)
-                Link<E> newNode = new Link<E>(it, curr); //create a new node and its next element is curr
+                newNode.setNext(curr);
                 temp.setNext(newNode);//set temp to point to that new node
+                curr = newNode;
             }
 
-        }
-        if (tail == curr) {
-            tail = curr.next(); // New tail
+        } else {
+            head = newNode; //set head to the new node
+            curr = head; //set curr to head
+            tail = curr; // set tail to be the next node of curr, which is null for this case
         }
         cnt++;
-        //Link<E> tempLink = new Link<E>(it, curr.next()); 
-        //curr.setNext(tempLink);
+    }
 
-        // Using freelist support
-        //curr.setNext(Link.get(it, curr.next()));
+    public boolean hasElement() {
+        return this.length() > 0;
     }
 
     /**
      * Append "it" to list
+     *
+     * @param it
      */
+    @Override
     public void append(E it) {
-        tail = tail.setNext(new Link<E>(it, null));
+        Link<E> newNode = new Link<>(it, null); // create a node where its next element is null
+        if (hasElement()) {
+            tail.setNext(newNode);
+            tail = newNode;
+        } else { // empty list => initialization
+            head = newNode; //set head to the new node
+            curr = newNode; //set curr to head
+            tail = newNode; // set tail to be the next node of curr, which is null for this case
+        }
         cnt++;
     }
 
     /**
      * Remove and return current element
      */
+    @Override
     public E remove() {
-        if (curr == null) {
+        if (!hasElement()) {
             return null; // Nothing to remove
         }
-        E it = curr.element(); // Remember value
+        E it = curr.getElement(); // Remember value
+        
+        if (length() == 1) {
+            this.clear();
+            return it;
+        }
 
         if (curr == head) // if we want to remove the first element
         {
-            head = head.next(); //set head to the next element
+            head = head.getNext(); //set head to the next element
             curr.release(); // doesnt matter, just for the safety of memory leaks 
             curr = head; // set curr to head
         } else {
             Link<E> temp = head; //set temp = head 
-            while (temp.next() != curr)// if the next element of temp is not curr
+            while (temp.getNext() != curr)// move temp to element bef head
             {
-                temp = temp.next(); //move temp by 1 index
+                temp = temp.getNext();
             }
-            temp.setNext(curr.next()); // set temp to point to 1 index behind where curr is pointing at. this is the removal of the node where curr is at 
+            temp.setNext(curr.getNext()); // set temp to point to 1 index behind where curr is pointing at. this is the removal of the node where curr is at 
             curr.release(); // just for the safety sake of memory leak
             curr = temp; //move curr back to where temp is 
         }
 
         cnt--; // Decrement count
         return it; // Return value
-
-        //if (tail == curr) 
-        //tail = curr; // Removed last
-        //Using freelist
-        // Link<E> tempptr = curr.next();
-        //Link<E> templink = curr.next().next(); 
-        //curr.setNext(templink); // Remove from list
-        // tempptr.release(); 
     }
 
     /**
      * Set curr at list start
      */
+    @Override
     public void moveToStart() {
         curr = head;
     }
@@ -127,6 +143,7 @@ public class LList<E> implements ADTList<E> {
     /**
      * Set curr at list end
      */
+    @Override
     public void moveToEnd() {
         curr = tail;
     }
@@ -134,14 +151,16 @@ public class LList<E> implements ADTList<E> {
     /**
      * Move curr one step left; no change if now at front
      */
+    @Override
     public void prev() {
         if (curr == head) {
-            return; // No previous element
+            System.err.println("no more element behind");
+            return; // No previous element => nothing to change
         }
         Link<E> temp = head;
         // March down list until we find the previous element
-        while (temp.next() != curr) {
-            temp = temp.next();
+        while (temp.getNext() != curr) {
+            temp = temp.getNext();
         }
         curr = temp;
     }
@@ -149,15 +168,23 @@ public class LList<E> implements ADTList<E> {
     /**
      * Move curr one step right; no change if now at end
      */
+    @Override
     public void next() {
-        if (curr != tail) {
-            curr = curr.next();
+        if (hasNext()) {
+            curr = curr.getNext();
+        } else {
+            System.err.println("no more element after");
         }
+    }
+
+    public boolean hasNext() {
+        return curr.getNext() != null;
     }
 
     /**
      * @return List length
      */
+    @Override
     public int length() {
         return cnt;
     }
@@ -165,35 +192,43 @@ public class LList<E> implements ADTList<E> {
     /**
      * @return The position of the current element
      */
+    @Override
     public int currPos() {
         Link<E> temp = head;
-        int i;
-        for (i = 0; curr != temp; i++) {
-            temp = temp.next();
+        int i = 0;
+        while (temp != curr) {
+            temp = temp.getNext();
+            i++;
         }
         return i;
+    }
+    
+    public boolean checkPosition(int pos) {
+        return (pos >= 0) && (pos < cnt);
     }
 
     /**
      * Move down list to "pos" position
      */
+    @Override
     public void moveToPos(int pos) {
-        assert (pos >= 0) && (pos <= cnt) : "Position out of range";
+        assert checkPosition(pos) : "Position out of range : " + pos;
         curr = head;
         for (int i = 0; i < pos; i++) {
-            curr = curr.next();
+            curr = curr.getNext();
         }
     }
 
     /**
      * @return Current element value
      */
+    @Override
     public E getValue() {
 
-        if (curr == null) {
+        if (!hasElement()) { // no element
             return null;
         }
-        return curr.element();
+        return curr.getElement();
     }
 
     // Extra stuff not printed in the book.
@@ -205,23 +240,24 @@ public class LList<E> implements ADTList<E> {
      *
      * @return The string representation of this list
      */
+    @Override
     public String toString() {
         // Save the current position of the list
+        if (!hasElement()) {
+            return "< | >";
+        }
         int oldPos = currPos();
-        int length = length();
-        StringBuffer out = new StringBuffer((length() + 1) * 4);
+        StringBuilder out = new StringBuilder();
 
         moveToStart();
         out.append("< ");
         for (int i = 0; i < oldPos; i++) {
-            out.append(getValue());
-            out.append(" ");
+            out.append(getValue()).append(" ");
             next();
         }
         out.append("| ");
-        for (int i = oldPos; i < length; i++) {
-            out.append(getValue());
-            out.append(" ");
+        for (int i = oldPos; i < length(); i++) {
+            out.append(getValue()).append(" ");
             next();
         }
         out.append(">");

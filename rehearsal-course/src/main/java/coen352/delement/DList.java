@@ -1,6 +1,5 @@
 package coen352.delement;
 
-import coen352.delement.DLink;
 import coen352.list.ADTList;
 
 /**
@@ -8,7 +7,7 @@ import coen352.list.ADTList;
  * Algorithm Analysis, 3rd Edition (Java)" by Clifford A. Shaffer Copyright
  * 2008-2011 by Clifford A. Shaffer
  */
-//Doubly linked list implementation
+//Doubly linked list implementation : ens de DLINK
 public class DList<E> implements ADTList<E> {
 
     private DLink<E> head;        // Pointer to list header
@@ -22,25 +21,31 @@ public class DList<E> implements ADTList<E> {
     }  // Ignore size
 
     public DList() {
-        curr = head = new DLink<E>(null, null); // Create header node
-        tail = new DLink<E>(head, null);
-        head.setNext(tail);
         cnt = 0;
     }
 
+    @Override
     public void clear() {         // Remove all elements from list
-        head.setNext(null);         // Drop access to rest of links
-        curr = head = new DLink<E>(null, null); // Create header node
-        tail = new DLink<E>(head, null);
-        head.setNext(tail);
-        cnt = 0;
+        if (hasElement()) {
+            // free memory
+            cnt = 0;
+            head = null;
+            curr = null;
+            tail = null;
+        }
     }
 
+    public boolean hasElement() {
+        return length() > 0;
+    }
+
+    @Override
     public void moveToStart() // Set curr at list start
     {
         curr = head;
     }
 
+    @Override
     public void moveToEnd() // Set curr at list end
     {
         curr = tail.getPrev();
@@ -48,67 +53,88 @@ public class DList<E> implements ADTList<E> {
 
     /**
      * Insert "it" at current position
+     *
+     * @param it
      */
+    @Override
     public void insert(E it) {
-        if (this.length() == 0) {
-            DLink<E> newNode = new DLink<E>(it, null, null);
+        if (!hasElement()) { // empty dlist
+            DLink<E> newNode = new DLink<>(it, null, null);
             head = newNode;
             curr = head;
-            tail = curr.next();
+            tail = new DLink<>(head, null); // lorsque la mémoire est vide => last == head
+            head.setNext(tail);
         } else {
-            if (curr.next() == null) {
-                curr.setNext(new DLink<E>(it, curr, null));
-                tail = curr.next();
-                //tail.setPrev(curr);
-                //this.next();
-                curr = curr.next();
+            if (curr.getNext() == tail) { // at end of dict
+                curr.setNext(new DLink<>(it, curr, tail));
+                this.next();
+                tail.setPrev(curr);
             } else {
                 DLink<E> temp = curr;
                 this.next();
-                DLink<E> newNode = new DLink<E>(it, temp, curr);
+                DLink<E> newNode = new DLink<>(it, temp, curr);
                 temp.setNext(newNode);
                 curr.setPrev(newNode);
+                curr = newNode;
             }
         }
-        //curr.setNext(new DLink<E>(it, curr, curr.next()));  
-        //curr.next().next().setPrev(curr.next());
         cnt++;
     }
 
     /**
      * Append "it" to list
+     * @param it
      */
+    @Override
     public void append(E it) {
-        tail.setPrev(new DLink<E>(it, tail.getPrev(), tail));
-        tail.getPrev().getPrev().setNext(tail.getPrev());
+        DLink<E> newNode = new DLink<>(it, null, null);
+        if (hasElement()) {
+            newNode.setPrev(tail.getPrev());
+            tail.getPrev().setNext(newNode);
+            
+            newNode.setNext(tail);
+            tail.setPrev(newNode);
+        } else {
+            head = newNode;
+            curr = newNode;
+            tail = new DLink<>(head, null);
+            newNode.setNext(tail);
+        }
         cnt++;
     }
 
     /**
      * Remove and return current element
      */
+    @Override
     public E remove() {
-        //if (curr.next() == tail) return null; // Nothing to remove
-        //E it = curr.next().getElement();      // Remember value
-        //curr.next().next().setPrev(curr);
-        //curr.setNext(curr.next().next());  // Remove from list
-
-        if (curr == null) {
+        if (!hasElement()) {
             return null;
+        }
+        if (this.length() == 1) { // Un seul element
+            E temp = curr.getElement();
+            this.clear();
+            return temp;
         }
 
         E it = curr.getElement();
 
-        if (curr == head) {
-            head = head.next();
-            curr = head;
+        if (curr == head) { // remove from the head
+            this.next();
+            head.setNext(null); // free link
+            head = curr;
+        } else if (curr.getNext() == tail) { // remove from the tail
+            this.prev();
+            tail.setPrev(null); // free link
+            tail = curr;
         } else {
-            DLink<E> temp = head;
-            while (temp.next() != curr) {
-                temp = temp.next();
-            }
-            temp.setNext(curr.next());
-            curr.next().setPrev(temp);
+            DLink<E> temp = curr.getPrev(); // move temp behind current element
+            temp.setNext(curr.getNext());
+            curr.getNext().setPrev(temp);
+            // free memory
+            curr.setNext(null);
+            curr.setPrev(null);
+            curr = temp;
         }
         cnt--;			     // Decrement the count
         return it;                         // Return value removed
@@ -117,6 +143,7 @@ public class DList<E> implements ADTList<E> {
     /**
      * Move curr one step left; no change if at front
      */
+    @Override
     public void prev() {
         if (curr != head) // Can't back up from list head
         {
@@ -125,41 +152,50 @@ public class DList<E> implements ADTList<E> {
     }
     //Move curr one step right; no change if at end
 
+    @Override
     public void next() {
-        if (curr != tail.getPrev()) {
-            curr = curr.next();
+        if (curr.getNext() != tail) {
+            curr = curr.getNext();
         }
     }
 
+    @Override
     public int length() {
         return cnt;
     }
 
     //Return the position of the current element
+    @Override
     public int currPos() {
         DLink<E> temp = head;
 
         int i;
         for (i = 0; curr != temp; i++) {
-            temp = temp.next();
+            temp = temp.getNext();
         }
         return i;
     }
+    
+    public boolean checkPosition(int pos) {
+        return (pos >= 0) && (pos < cnt);
+    }
 
     //Move down list to "pos" position
+    @Override
     public void moveToPos(int pos) {
-        assert (pos >= 0) && (pos <= cnt) : "Position out of range";
+        assert checkPosition(pos) : "Position out of range";
         curr = head;
         for (int i = 0; i < pos; i++) {
-            curr = curr.next();
+            curr = curr.getNext();
         }
     }
 
+    @Override
     public E getValue() {   // Return current element
-        if (curr.next() == tail) {
+        if (!hasElement()) { // empty dlist
             return null;
         }
-        return curr.next().getElement();
+        return curr.getElement();
     }
     //Extra stuff not printed in the book.
 
@@ -173,22 +209,22 @@ public class DList<E> implements ADTList<E> {
      */
     @Override
     public String toString() {
+        if (!hasElement()) {
+            return "< | >";
+        }
         // Save the current position of the list
         int oldPos = currPos();
-        int length = length();
-        StringBuilder out = new StringBuilder((length() + 1) * 4);
+        StringBuilder out = new StringBuilder();
 
         moveToStart();
         out.append("< ");
         for (int i = 0; i < oldPos; i++) {
-            out.append(getValue());
-            out.append(" ");
+            out.append(getValue()).append(" ");
             next();
         }
         out.append("| ");
-        for (int i = oldPos; i < length; i++) {
-            out.append(getValue());
-            out.append(" ");
+        for (int i = oldPos; i < length(); i++) {
+            out.append(getValue()).append(" ");
             next();
         }
         out.append(">");

@@ -7,6 +7,8 @@ package coen352.dictionnary;
  */
 /**
  * The Dictionary abstract class.
+ * @param <Key>
+ * @param <E>
  */
 public interface ADTDictionary<Key, E> {
 

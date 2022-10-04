@@ -1,13 +1,11 @@
 package coen352.delement;
 
-import coen352.delement.DList;
-import coen352.delement.DLink;
 import coen352.dictionnary.ADTDictionary;
 
 public class DLLDictionary<Key, E> implements ADTDictionary<Key, E> {
 
-    private DList<Key> klist; //declaration of object named klist of type Key
-    private DList<E> vlist; //declaration of object named vlist of type E
+    private final DList<Key> klist; //declaration of object named klist of type Key
+    private final DList<E> vlist; //declaration of object named vlist of type E
 
     @Override
     public void clear() {
@@ -18,8 +16,8 @@ public class DLLDictionary<Key, E> implements ADTDictionary<Key, E> {
 
     //constructor
     public DLLDictionary(int size) {
-        klist = new DList<Key>(size);
-        vlist = new DList<E>(size);
+        klist = new DList<>(size);
+        vlist = new DList<>(size);
     }
 
     @Override
@@ -32,110 +30,80 @@ public class DLLDictionary<Key, E> implements ADTDictionary<Key, E> {
     @Override
     public E remove(Key k) {
         // TODO Auto-generated method stub
+        int pos = 0;
+        int currPos = klist.currPos();
         klist.moveToStart(); //move the curr of klist to index 0
         vlist.moveToStart(); //move the curr of vlist to index 0
-        int count = 0; // set a dummy variable to keep track of where curr is in klist, so then we can set curr for vlist to that exact corresponding position
-
-        // while current position is not at tail.next(), which is null,(if curr points to null, meaning that we reach the end of klist) keep traversing through the loop
-        while (klist.getCurr() != null) {
-            //if the node after where curr is pointing to contain the element we need to find, do the following
+        
+        while (pos < klist.length()) {
             if (klist.getCurr().getElement() == k) {
-                count = klist.currPos(); // set the value of count to the index of which curr is pointing at
-                klist.remove(); //call the remove function from DList to remove the key
-
-                //use that count to be the upper bound to find the value corresponding to k in vlist
-                for (int i = 0; i < count; i++) {
-                    vlist.next(); // keep traversing vlist till you get to the position corresponding to where curr is in klist
-
+                klist.remove();
+                vlist.moveToPos(pos);
+                E result = vlist.remove();
+                
+                if (pos < currPos) { // we removed an element after currPos
+                    currPos = Math.max(0, currPos-1);
                 }
-                return (vlist.remove());// return the element that you are deleting (in vlist only) 
+                vlist.moveToPos(currPos);
+                klist.moveToPos(currPos);
+                return result;
             }
-            klist.next(); // if we cant find the element in klist, keep traversing till we find it, then this while loop will break
+            klist.next();
+            pos++;
         }
-        return null; // if k is not there, meaning that v is not there, return nothing cuz theres nothing to be found
+        return null;
+    }
+    
+    public boolean hasElement() {
+        return this.klist.length() > 0;
     }
 
     @Override
     public E removeAny() {
         // TODO Auto-generated method stub
-
-        DLink<Key> tail = klist.getCurr(); //create a 'tail' to where curr is at. I had to do this cuz her next() function in DList is this [if (curr != tail.getPrev()), then, curr = curr.next();], 
-        //so in that sense, curr will never get to tail so if I want to remove the last element, I cant do it if using her next() function, so u see what I mean by her code is so clumsy 
-
         //if the length of the list is 0, then remove nada
-        if (klist.length() == 0) {
+        if (! hasElement()) { // empty dictionnary
             return null;
         }
 
-        klist.moveToStart(); //move curr to index 0
-        vlist.moveToStart(); //move curr to index 0 
-
-        int count = 0; // declaration of a integer count
-        count = (int) (Math.random() * (klist.length())); //set count to a random number smaller than size of the link list
-        //this count will be the index to be removed.
-        // so for exp, count = 3, then we r removing the element at index 3
-        //now, if curr is one index before tail, do the following
-        if (klist.getCurr() == tail.getPrev()) {
-            //if count = index where tail is at (which is fked up because her function doesnt let this case to happen, I had to hard code it 
-            if (count == (klist.currPos() + 1)) //since curr can only move to the position of 1 index before tail, we had to plus 1 there
-            {
-                klist.moveToEnd(); // move curr to the end of the list regardless where tail is for klist
-                klist.remove(); // call the remove function 
-                vlist.moveToEnd(); // move curr to the end of the list regardless where tail is for vlist
-                return (vlist.remove()); // remove the value in vlist and return it 
-            }
-        } //if we are trying to remove anywhere but the tail, do the following 
-        else {
-            //traversing through the list till you get to a position of an index equal to count
-            for (int i = 0; i < count; i++) {
-                klist.next();
-            }
-            klist.remove(); // when get to the position, call the function remove and remove the key
-
-            for (int j = 0; j < count; j++) {
-                vlist.next();
-            }
-            return (vlist.remove()); // when get to the position, call the function remove to remove the value and return that value
-        }
-        return null;
-
+        int pos = klist.currPos(); //create a 'tail' to where curr is at. I had to do this cuz her next() function in DList is this [if (curr != tail.getPrev()), then, curr = curr.next();], 
+        //so in that sense, curr will never get to tail so if I want to remove the last element, I cant do it if using her next() function, so u see what I mean by her code is so clumsy 
+        
+        int count = (int) (Math.random() * (klist.length())); //set count to a random number smaller than size of the link list
+        
+        klist.moveToPos(count);
+        klist.remove();
+        vlist.moveToPos(count);
+        
+        E result = vlist.remove();
+        
+        klist.moveToPos(Math.max(pos-1, 0));
+        vlist.moveToPos(Math.max(pos-1, 0));
+        
+        return result;
     }
 
     @Override
     public E find(Key k) {
         // TODO Auto-generated method stub
-        DLink<Key> tail = klist.curr;
-        klist.moveToStart(); //move the curr to index 0 of klist
-        vlist.moveToStart(); //move the curr to index 0 of klist
-
-        while (klist.curr != null) // while current position is not at tail.next(), which is null,(if curr points to null, meaning that we reach the end of klist) keep traversing through the loop 
-        {
-            //if curr is pointing to a node that has the element we need to find, do the following
-            if (klist.curr.getElement() == k) {
-                int index = klist.currPos();//create an integer called index where it stores the index of the node that contains element k
-
-                //use that index to be the upper bound to find the value corresponding to k in vlist
-                for (int i = 0; i < index; i++) {
-                    vlist.next(); // keep traversing vlist till you get to the mentioned corresponding element 
-                }
-                return vlist.getValue(); // return that value of vlist
-            } //again here if curr = 1 index before tail
-            else if (klist.curr == tail.getPrev()) {
-                if (tail.getElement() == k) // if tail has the element 
-                {
-                    vlist.moveToEnd(); // move curr to the end of vlist regardless of where tail is 
-                    return vlist.curr.next().getElement(); //return the element, which is at tail
-                }
+        int pos = 0;
+        int currPos = klist.currPos();
+        klist.moveToStart(); //move the curr of klist to index 0
+        vlist.moveToStart(); //move the curr of vlist to index 0
+        
+        while (pos < this.size()) {
+            if (klist.getCurr().getElement() == k) { // element found
+                vlist.moveToPos(pos);
+                E result = vlist.getValue();
+                
+                // then position
+                vlist.moveToPos(currPos);
+                klist.moveToPos(currPos);
+                
+                return result;
             }
-            klist.next(); // if we cant find the element in klist, keep traversing till we find it, then this while loop will break
-        }
-        if (klist.curr != null && klist.curr == tail.getPrev()) // if the element that we are trying to find is not at tail but curr is one index before tail 
-        {
-            for (int i = 0; i < (klist.cnt) - 2; i++) //klist.cnt-2 gives the position of where curr at 
-            {
-                vlist.next();
-            }
-            return vlist.getValue();
+            klist.next();
+            pos++;
         }
         return null; // if k is not there, meaning that v is not there, return nothing cuz theres nothing to be found
     }

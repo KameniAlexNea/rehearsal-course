@@ -6,9 +6,9 @@ package coen352.list;
  */
 public class AList<E> implements ADTList<E> {
 
-    private static final int defaultSize = 10; // Default size
+    private static final int DEFAULTSIZE = 10; // Default size
     private int maxSize; // Maximum size of list
-    private int listSize; // Current # of list items, length
+    private int currSize = 0;
     private int curr = -1; // Position of current element
     private E[] listArray; // Array holding list elements
 
@@ -19,7 +19,7 @@ public class AList<E> implements ADTList<E> {
      * Create a list with the default capacity.
      */
     public AList() {
-        this(defaultSize);
+        this(DEFAULTSIZE);
     }
 
     /**
@@ -30,88 +30,111 @@ public class AList<E> implements ADTList<E> {
     @SuppressWarnings("unchecked") // Generic array allocation
     public AList(int size) {
         maxSize = size;
-        listSize = 0;
-        curr = 0;
+        curr = -1;
+        currSize = 0;
         listArray = (E[]) new Object[size]; // Create listArray
     }
 
     /**
      * Reinitialize the list
      */
+    @Override
     public void clear() {
-        listSize = curr = 0;
+        curr = -1;
+        currSize = 0;
+        listArray = (E[]) new Object[maxSize];
     } // Simply reinitialize values
 
     /**
      * Insert "it" at current position
+     * @param it
+     * @param pos
      */
-    public void insert(E it) {
+    public void insert(E it, int pos) {
 
-        assert listSize < maxSize : "List capacity exceeded";
+        assert currSize < maxSize : "List capacity exceeded";
 
-        for (int i = listSize; i > curr; i--) // Shift elements up
+        for (int i = currSize; i > pos; i--) // Shift elements up
         {
             listArray[i] = listArray[i - 1]; // to make room
         }
-        listArray[curr] = it;
-        listSize++; // Increment list size
+        listArray[pos] = it;
+        currSize++; // Increment list size
+        curr++;
+        
+    }
+    
+    @Override
+    public void insert(E it) {
+        this.insert(it, curr);
     }
 
     /**
      * Append "it" to list
+     * @param it
      */
+    @Override
     public void append(E it) {
-        assert listSize < maxSize : "List capacity exceeded";
-        listArray[listSize++] = it;
+        assert currSize < maxSize : "List capacity exceeded";
+        listArray[currSize++] = it;
+        curr = Math.max(0, curr);
     }
 
     /**
      * Remove and return the current element
      */
+    @Override
     public E remove() {
-        if ((curr < 0) || (curr >= listSize)) // No current element
+        if (currSize == 0) // An empty list
         {
             return null;
         }
+        
         E it = listArray[curr]; // Copy the element
-        for (int i = curr; i < listSize - 1; i++) // Shift them down
+        for (int i = curr; i < currSize-1; i++) // Shift them down
         {
             listArray[i] = listArray[i + 1];
         }
-        listSize--; // Decrement size
+        currSize--; // Decrement size
+        curr--;
         return it;
     }
 
+    @Override
     public void moveToStart() {
         curr = 0;
     } // Set to front
 
+    @Override
     public void moveToEnd() {
-        curr = listSize;
+        curr = currSize - 1;
     } // Set at end
 
+    @Override
     public void prev() {
-        if (curr != 0) {
-            curr--;
-        }
+        curr = Math.max(0, curr - 1);
     } // Back up
 
+    @Override
     public void next() {
-        if (curr < listSize) {
-            curr++;
+        if (curr == currSize -1) {
+            System.err.println("No mode element after");
         }
+        curr = Math.min(currSize -1, curr + 1);
     }
 
     /**
      * @return List size
      */
+    @Override
     public int length() {
-        return listSize;
+        return currSize;
     }
 
     /**
      * @return Current position
      */
+    @Override
     public int currPos() {
         return curr;
     }
@@ -119,9 +142,22 @@ public class AList<E> implements ADTList<E> {
     /**
      * Set current list position to "pos"
      */
+    @Override
     public void moveToPos(int pos) {
-        assert (pos >= 0) && (pos <= listSize) : "Pos out of range";
+        assert (pos >= 0) && (pos < currSize) : "Pos out of range";
         curr = pos;
+    }
+    
+    /**
+     * check if our object is empty
+     * @return 
+     */
+    public boolean hasElement() {
+        return length() > 0;
+    }
+    
+    public boolean checkPosition(int pos) {
+        return (pos >= 0) && (pos < currSize);
     }
 
     /**
@@ -129,19 +165,20 @@ public class AList<E> implements ADTList<E> {
      * @return Current element
      */
     public E getValue(int pos) {
-        assert (curr >= 0) && (curr < listSize) : "No current element";
-        assert (pos >= 0) && (pos < listSize) : "Invalid Position";
+        assert hasElement() : "No current element";
+        assert checkPosition(pos) : "Invalid Position: " + pos;
         return listArray[pos];
     }
 
     public int find(E k) {
         int pos = 0;
-        for (; pos < listSize; pos++) {
+        while (pos < currSize) {
             if (k == listArray[pos]) {
                 break;
             }
+            pos++;
         }
-        return pos;
+        return pos; // pos == currSize if not found
     }
 
     // Extra stuff not printed in the book.
@@ -156,21 +193,22 @@ public class AList<E> implements ADTList<E> {
     @Override
     public String toString() {
         // Save the current position of the list
+        if (!hasElement()) {
+            return "< | >";
+        }
+        
         int oldPos = currPos();
-        int length = length();
-        StringBuilder out = new StringBuilder((length() + 1) * 4);
+        StringBuilder out = new StringBuilder();
 
         moveToStart();
         out.append("< ");
         for (int i = 0; i < oldPos; i++) {
-            out.append(getValue(i));
-            out.append(" ");
+            out.append(getValue(i)).append(" ");
             next();
         }
         out.append("| ");
-        for (int i = oldPos; i < length; i++) {
-            out.append(getValue(i));
-            out.append(" ");
+        for (int i = oldPos; i < length(); i++) {
+            out.append(getValue(i)).append(" ");
             next();
         }
         out.append(">");

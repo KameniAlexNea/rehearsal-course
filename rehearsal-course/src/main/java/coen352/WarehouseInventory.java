@@ -17,16 +17,16 @@ public class WarehouseInventory {
     LLDictionary<String, String> discontinued;
 
     public WarehouseInventory() {
-        inventoryID = new LList<String>();
-        name = new LLDictionary<String, String>(100);
-        description = new LLDictionary<String, String>(100);
-        unitPrice = new LLDictionary<String, Float>(100);
-        quantityInStock = new LLDictionary<String, Integer>(100);
-        inventoryValue = new LLDictionary<String, Float>(100);
-        reOrderLevel = new LLDictionary<String, Integer>(100);
-        reOrderTimeinDay = new LLDictionary<String, Integer>(100);
-        quantityInReorder = new LLDictionary<String, Integer>(100);
-        discontinued = new LLDictionary<String, String>(100);
+        inventoryID = new LList<>();
+        name = new LLDictionary<>(100);
+        description = new LLDictionary<>(100);
+        unitPrice = new LLDictionary<>(100);
+        quantityInStock = new LLDictionary<>(100);
+        inventoryValue = new LLDictionary<>(100);
+        reOrderLevel = new LLDictionary<>(100);
+        reOrderTimeinDay = new LLDictionary<>(100);
+        quantityInReorder = new LLDictionary<>(100);
+        discontinued = new LLDictionary<>(100);
 
     }
 
@@ -77,10 +77,8 @@ public class WarehouseInventory {
 
     public boolean FindRecord(String inventoryID) {
         this.inventoryID.moveToStart();
-        boolean recordFound = false;
         for (int i = 0; i < this.inventoryID.length(); i++) {
-            if (inventoryID == this.inventoryID.getValue()) {
-                recordFound = true;
+            if (inventoryID == null ? this.inventoryID.getValue() == null : inventoryID.equals(this.inventoryID.getValue())) {
                 System.out.println("Inventory ID \t Name \t Description \t Unit Price \t Quantity in Stock \t Inventory Value \t Reorder Level  \t Reorder Time in Days \t Quantity in Reorder  \t Discontinued?");
                 System.out.print(inventoryID);
                 System.out.print(" \t \t" + this.name.find(inventoryID));

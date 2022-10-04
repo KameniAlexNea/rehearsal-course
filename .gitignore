@@ -23,3 +23,6 @@
 hs_err_pid*
 /rehearsal-course/target/
 /rehearsal-course/nbproject/
+
+# vs code
+.vscode
